@@ -87,14 +87,14 @@ class Engine:
     # recommendations
     def recommend(self, titles: list[str], n: int = 10, genres=None,
                   min_rating: float = 0.0, quality_weight: float = 0.15,
-                  pool: int | None = None) -> list[Rec]:
+                  pool: int | None = None) -> list[Rec]: # function signature
         idxs = [self.index_of(t) for t in titles]
         if not idxs:
-            return []
-        q = normalize(sp.csr_matrix(self.X[idxs].mean(axis=0)))
-        sims = (self.X @ q.T).toarray().ravel()
+            return [] # convert title to row numbers
+        q = normalize(sp.csr_matrix(self.X[idxs].mean(axis=0)))  # taste vector
+        sims = (self.X @ q.T).toarray().ravel() # cosine similarity
         score = sims * self._boost(self.quality, quality_weight)
-        score[~self._mask(genres, min_rating, idxs)] = -1
+        score[~self._mask(genres, min_rating, idxs)] = -1 # filtered out movies
         k = pool or n
         top = np.argpartition(-score, min(k, len(score) - 1))[:k]
         top = top[np.argsort(-score[top])]
@@ -105,7 +105,7 @@ class Engine:
             reasons = self._explain(idxs, int(i))
             out.append(Rec(int(i), self.titles[i], float(sims[i]),
                            self._match_pct(float(sims[i])), reasons))
-        return out
+        return out        #loop all winner, reject with score 0 or below avg
 
     def _explain(self, src_idxs: list[int], j: int) -> list[str]:
         # explain against the selected movie that is most similar to candidate j
@@ -130,7 +130,7 @@ class Engine:
         return reasons
 
     @staticmethod
-    def _shared_cast(a: str, b: str) -> list[str]:
+    def _shared_cast(a: str, b: str) -> list[str]:  # finds matching word pairs
         ta, tb = a.split(), b.split()
         bigrams_b = {(x, y) for x, y in zip(tb, tb[1:])}
         hits = [i for i, p in enumerate(zip(ta, ta[1:])) if p in bigrams_b]
@@ -156,7 +156,7 @@ class Engine:
     #  vibe search
     def _vectorise_query(self, text: str):
         """Same maths as TfidfVectorizer(stop_words='english', ngram_range=(1,2), sublinear_tf=True)."""
-        toks = [t for t in re.findall(r"(?u)\b\w\w+\b", text.lower()) if t not in ENGLISH_STOP_WORDS]
+        toks = [t for t in re.findall(r"(?u)\b\w\w+\b", text.lower()) if t not in ENGLISH_STOP_WORDS] # lowercase text, removes stop words and adds two word phrases
         terms = toks + [f"{a} {b}" for a, b in zip(toks, toks[1:])]
         counts: dict[int, int] = {}
         for t in terms:
@@ -164,29 +164,29 @@ class Engine:
             if j is not None:
                 counts[j] = counts.get(j, 0) + 1
         if not counts:
-            return None
+            return None # counts only terms found in vocabulary
         cols = np.array(list(counts))
         vals = (1 + np.log(np.array(list(counts.values())))) * self.txt_idf[cols]
         vals = vals / np.linalg.norm(vals)
         return sp.csr_matrix((vals, (np.zeros(len(cols), dtype=int), cols)),
-                             shape=(1, self.T.shape[1]), dtype=np.float32)
+                             shape=(1, self.T.shape[1]), dtype=np.float32) # TF-IDF maths by hand
 
     def search_text(self, query: str, n: int = 10, genres=None, min_rating=0.0,
                     quality_weight: float = 0.15) -> list[Rec]:
         q = query.lower()
         for k, v in SYNONYMS.items():
             if k in q:
-                q = q.replace(k, f"{k} {v}")
+                q = q.replace(k, f"{k} {v}")  #lowercases query and expand synonyms
         qv = self._vectorise_query(q)
         if qv is None:
             return []
-        sims = (self.T @ qv.T).toarray().ravel()
+        sims = (self.T @ qv.T).toarray().ravel() # vectorise query and score
         wanted = {g for g in self.all_genres if g.lower() in q}
         if wanted:                                   # reward movies that actually carry the genre
             frac = np.array([len(wanted & s) / len(wanted) for s in self.genre_sets])
             sims = sims * (0.6 + 0.8 * frac)
         score = sims * self._boost(self.quality, max(quality_weight, 0.3))
-        score[~self._mask(genres, min_rating, [])] = -1
+        score[~self._mask(genres, min_rating, [])] = -1 # applies quality boost
         top = np.argsort(-score)[:n]
         peak = max(float(sims[top[0]]), 1e-9) if len(top) else 1
         out = []
@@ -197,7 +197,7 @@ class Engine:
             out.append(Rec(int(i), self.titles[i], float(sims[i]), pct,
                            ["Genres: " + ", ".join(self.movies.iloc[i]["genre_list"][:3])]
                            if self.movies.iloc[i]["genre_list"] else []))
-        return out
+        return out # takes top n and sets match % relative to best hit
 
     #  top rated
     def top_rated(self, n: int = 10, genres=None) -> list[int]:
