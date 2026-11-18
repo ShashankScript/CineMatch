@@ -114,7 +114,6 @@ class Engine:
         self._kw_tokens = [set(k.split()) for k in m["keywords"]]
 
 
-    # ---------------- UTILITY FUNCTIONS ----------------
 
     def index_of(self, title: str) -> int:
         # Returns the row index of a movie using its title
@@ -152,7 +151,6 @@ class Engine:
         return 1.0 + weight * (quality - 0.5) * 2.0
 
 
-    # ---------------- MOVIE RECOMMENDATION ----------------
 
     def recommend(self, titles: list[str], n: int = 10, genres=None,
                   min_rating: float = 0.0, quality_weight: float = 0.15,
@@ -210,7 +208,6 @@ class Engine:
         return out  # Returns the final ranked movie recommendations
 
 
-    # ---------------- RECOMMENDATION EXPLANATION ----------------
 
     def _explain(self, src_idxs: list[int], j: int) -> list[str]:
 
@@ -260,7 +257,6 @@ class Engine:
         return reasons  # Returns all explanation reasons
 
 
-    # ---------------- COMMON CAST DETECTION ----------------
 
     @staticmethod
     def _shared_cast(a: str, b: str) -> list[str]:
@@ -309,8 +305,6 @@ class Engine:
         return out  # Returns common cast names
 
 
-    # ---------------- NATURAL LANGUAGE / VIBE SEARCH ----------------
-
     def _vectorise_query(self, text: str):
         """Converts a text query into a TF-IDF sparse vector."""
 
@@ -357,8 +351,6 @@ class Engine:
             dtype=np.float32
         )
 
-
-    # ---------------- TEXT-BASED MOVIE SEARCH ----------------
 
     def search_text(self, query: str, n: int = 10, genres=None,
                     min_rating=0.0, quality_weight: float = 0.15) -> list[Rec]:
@@ -432,7 +424,6 @@ class Engine:
         return out  # Returns the final text-based recommendations
 
 
-    # ---------------- TOP-RATED MOVIES ----------------
 
     def top_rated(self, n: int = 10, genres=None) -> list[int]:
 
@@ -446,7 +437,6 @@ class Engine:
         return list(np.argsort(-score)[:n])
 
 
-    # ---------------- GET MOVIE DETAILS ----------------
 
     def row(self, idx: int):
 
