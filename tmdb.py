@@ -19,8 +19,6 @@ IMG = "https://image.tmdb.org/t/p"  # Base URL for TMDB movie images
 _session = None  # Stores a reusable HTTP session
 
 
-# ---------------- SESSION MANAGEMENT ----------------
-
 def session() -> requests.Session:
     global _session  # Allows this function to access the global session variable
 
@@ -47,8 +45,6 @@ def session() -> requests.Session:
     return _session  # Returns the reusable session
 
 
-# ---------------- API REQUEST FUNCTION ----------------
-
 def _get(path: str, api_key: str, **params):
 
     try:
@@ -69,8 +65,6 @@ def _get(path: str, api_key: str, **params):
         return None
 
 
-# ---------------- TEXT TOKENIZATION ----------------
-
 def _tokens(text: str) -> set[str]:
 
     # Converts text into lowercase words and removes words shorter than 4 characters
@@ -81,7 +75,6 @@ def _tokens(text: str) -> set[str]:
     }
 
 
-# ---------------- FIND THE CORRECT MOVIE ----------------
 
 def find_movie(title: str, overview: str, vote_count: int, api_key: str):
     """Searches TMDB by title and identifies the most suitable matching movie.
@@ -139,16 +132,12 @@ def find_movie(title: str, overview: str, vote_count: int, api_key: str):
     return best  # Returns the most suitable TMDB movie result
 
 
-# ---------------- POSTER AND IMAGE URL ----------------
-
 def poster(path: str | None, size: str = "w500"):
 
     # Builds the complete TMDB image URL using the requested image size
     # Returns None if the movie does not have an image path
     return f"{IMG}/{size}{path}" if path else None
 
-
-# ---------------- COMPLETE MOVIE DETAILS ----------------
 
 def details(tmdb_id: int, api_key: str, region: str = "IN"):
 
@@ -163,7 +152,6 @@ def details(tmdb_id: int, api_key: str, region: str = "IN"):
     if not d:
         return None
 
-    # ---------------- TRAILER EXTRACTION ----------------
 
     trailer = None  # Initially assumes no trailer is available
 
@@ -179,8 +167,6 @@ def details(tmdb_id: int, api_key: str, region: str = "IN"):
             # Stops searching if an official trailer is found
             if v.get("official"):
                 break
-
-    # ---------------- CAST EXTRACTION ----------------
 
     # Extracts the first 8 actors with their character names and profile photos
     cast = [
@@ -202,7 +188,6 @@ def details(tmdb_id: int, api_key: str, region: str = "IN"):
         None  # Returns None if no director is found
     )
 
-    # ---------------- STREAMING PROVIDERS ----------------
 
     # Gets the watch provider information for the selected country
     prov = (
@@ -233,7 +218,6 @@ def details(tmdb_id: int, api_key: str, region: str = "IN"):
         "link": prov.get("link"),
     }
 
-    # ---------------- FINAL MOVIE INFORMATION ----------------
 
     # Returns all collected movie information in a Python dictionary
     return {
@@ -284,7 +268,6 @@ def details(tmdb_id: int, api_key: str, region: str = "IN"):
     }
 
 
-# ---------------- COMPLETE MOVIE CARD DATA ----------------
 
 def card_data(
     title: str,
@@ -302,8 +285,6 @@ def card_data(
     # Otherwise returns None
     return details(hit["id"], api_key, region) if hit else None
 
-
-# ---------------- TRENDING MOVIES ----------------
 
 def trending(api_key: str, n: int = 10):
 
