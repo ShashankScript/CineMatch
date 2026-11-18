@@ -67,7 +67,7 @@ class Engine:
         return self._title_to_idx[title]
 
     def _match_pct(self, cos: float) -> int:
-        return int(round(min(0.99, max(0.0, cos / self.ref)) * 100))
+        return int(round(min(0.99, max(0.0, cos / self.ref)) * 100)) # computes match %
 
     def _mask(self, genres, min_rating, exclude):
         ok = self.rating >= float(min_rating)
