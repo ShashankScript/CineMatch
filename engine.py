@@ -48,7 +48,7 @@ class Engine:
         self.ref: float = meta["ref"]
         self.kw_idf: dict = meta["kw_idf"]
         self.txt_vocab: dict = meta["txt_vocab"]
-        self.txt_idf = np.load(DATA / "txt_idf.npy")
+        self.txt_idf = np.load(DATA / "txt_idf.npy") # load data
 
         m = self.movies
         self.titles = m["title"].tolist()
@@ -60,7 +60,7 @@ class Engine:
         self.votes = m["vote_count"].to_numpy()
         self.genre_sets = [set(g) for g in m["genre_list"]]
         self.all_genres = sorted({g for s in self.genre_sets for g in s})
-        self._kw_tokens = [set(k.split()) for k in m["keywords"]]
+        self._kw_tokens = [set(k.split()) for k in m["keywords"]]  # builds quick lookups
 
     # utils
     def index_of(self, title: str) -> int:
@@ -69,7 +69,7 @@ class Engine:
     def _match_pct(self, cos: float) -> int:
         return int(round(min(0.99, max(0.0, cos / self.ref)) * 100)) # computes match %
 
-    def _mask(self, genres, min_rating, exclude):
+    def _mask(self, genres, min_rating, exclude): # _mask is the filter, keeps movie ratings
         ok = self.rating >= float(min_rating)
         ok &= self.votes >= 20
         if genres:
